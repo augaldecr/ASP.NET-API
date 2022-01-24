@@ -1,6 +1,8 @@
 ﻿using ASP.NET_API.Data;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
 using Shared.Entities;
 
 namespace ASP.NET_API.Controllers
@@ -10,21 +12,48 @@ namespace ASP.NET_API.Controllers
     public class AuthorsControllers : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper mapper;
 
-        public AuthorsControllers(ApplicationDbContext context)
+        public AuthorsControllers(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            this.mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Author>>> Get()
+        public async Task<ActionResult<List<AuthorDTO>>> Get()
         {
-            return await _context.Authors.Include(a => a.Books).ToListAsync();
+            var authors = await _context.Authors.ToListAsync();
+            return Ok(mapper.Map<List<AuthorDTO>>(authors));
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<AuthorDTO>> Get(int id)
+        {
+            var autor = await _context.Authors.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (autor == null)
+                return NotFound();
+
+            return mapper.Map<AuthorDTO>(autor);
+        }
+
+        [HttpGet("{name}")]
+        public async Task<ActionResult<AuthorDTO[]>> Get([FromRoute] string name)
+        {
+            var authors = await _context.Authors.Where(x => x.Name.Contains(name)).ToArrayAsync();
+
+            if (authors is null)
+                return NotFound();
+
+            return mapper.Map<AuthorDTO[]>(authors);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Author author)
+        public async Task<ActionResult> Post(AuthorCreateDTO authorCreateDTO)
         {
+            var author = mapper.Map<Author>(authorCreateDTO);
+
             await _context.Authors.AddAsync(author);   
             await _context.SaveChangesAsync();
             return Ok();

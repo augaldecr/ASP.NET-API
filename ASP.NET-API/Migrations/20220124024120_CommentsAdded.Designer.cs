@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASP.NET_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220117021453_BookEntityAdded")]
-    partial class BookEntityAdded
+    [Migration("20220124024120_CommentsAdded")]
+    partial class CommentsAdded
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -32,7 +32,9 @@ namespace ASP.NET_API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
 
@@ -47,33 +49,51 @@ namespace ASP.NET_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("AuthorId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
 
                     b.ToTable("Books");
                 });
 
-            modelBuilder.Entity("Shared.Entities.Book", b =>
+            modelBuilder.Entity("Shared.Entities.Comment", b =>
                 {
-                    b.HasOne("Shared.Entities.Author", "Author")
-                        .WithMany("Books")
-                        .HasForeignKey("AuthorId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("Shared.Entities.Comment", b =>
+                {
+                    b.HasOne("Shared.Entities.Book", "Book")
+                        .WithMany("Comments")
+                        .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("Book");
                 });
 
-            modelBuilder.Entity("Shared.Entities.Author", b =>
+            modelBuilder.Entity("Shared.Entities.Book", b =>
                 {
-                    b.Navigation("Books");
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }
