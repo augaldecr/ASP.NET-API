@@ -12,6 +12,8 @@ namespace ASP.NET_API.Utilities
             CreateMap<Author, AuthorDTO>();
             CreateMap<BookCreateDTO, Book>();
             CreateMap<Book, BookDTO>();
+            CreateMap<CommentCreateDTO, Comment>();
+            CreateMap<Comment, CommentDTO>();
         }
     }
 }

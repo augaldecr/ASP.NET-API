@@ -40,7 +40,7 @@ namespace ASP.NET_API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<BookDTO>> GetBook(int id)
         {
-            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
+            var book = await _context.Books.Include(b => b.Comments).FirstOrDefaultAsync(b => b.Id == id);
 
             if (book == null)
             {

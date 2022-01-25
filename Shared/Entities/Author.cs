@@ -11,5 +11,7 @@ namespace Shared.Entities
         [StringLength(maximumLength:120, ErrorMessage = "The field {0} must not exceed {1} characters")]
         [CapitalFirstLetterAttribute]
         public string Name { get; set; }
+
+        public IEnumerable<AuthorBook> AuthorsBooks { get; set; }
     }
 }
