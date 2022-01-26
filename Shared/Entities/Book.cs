@@ -13,6 +13,6 @@ namespace Shared.Entities
         public string Title { get; set; }
 
         public IEnumerable<Comment> Comments { get; set; }
-        public IEnumerable<AuthorBook> AuthorsBooks { get; set; }
+        public List<AuthorBook> AuthorsBooks { get; set; }
     }
 }

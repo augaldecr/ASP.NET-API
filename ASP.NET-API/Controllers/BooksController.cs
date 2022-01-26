@@ -37,48 +37,44 @@ namespace ASP.NET_API.Controllers
         }
 
         //GET: api/Books/5
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<BookDTO>> GetBook(int id)
+        [HttpGet("{id:int}", Name = "GetBook")]
+        public async Task<ActionResult<BookDTOWithAuthors>> GetBook(int id)
         {
-            var book = await _context.Books.Include(b => b.Comments).FirstOrDefaultAsync(b => b.Id == id);
+            var book = await _context.Books.Include(b => b.Comments)
+                                           .Include(b => b.AuthorsBooks)
+                                                .ThenInclude(a => a.Author)
+                                           .FirstOrDefaultAsync(b => b.Id == id);
 
             if (book == null)
             {
                 return NotFound();
             }
 
-            var bookDTO = _mapper.Map<BookDTO>(book);
+            if (book.AuthorsBooks is not null)
+            {
+                book.AuthorsBooks = book.AuthorsBooks.OrderBy(a => a.Order).ToList();
+            }
 
-            return bookDTO;
+            return _mapper.Map<BookDTOWithAuthors>(book);
         }
 
         // PUT: api/Books/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBook(int id, Book book)
+        public async Task<IActionResult> PutBook(int id, BookCreateDTO bookCreateDTO)
         {
-            if (id != book.Id)
+            var bookDB = await _context.Books.Include(b => b.AuthorsBooks)
+                                             .FirstOrDefaultAsync(b => b.Id==id);
+
+            if (bookDB is null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(book).State = EntityState.Modified;
+            bookDB = _mapper.Map(bookCreateDTO, bookDB);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BookExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            OrderAuthors(bookDB);
 
+            await _context.SaveChangesAsync();            
             return NoContent();
         }
 
@@ -86,20 +82,30 @@ namespace ASP.NET_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Book>> PostBook(BookCreateDTO bookCreateDTO)
         {
-            //var authorExist = await _context.Authors.AnyAsync(a => a.Id == book.AuthorId);
+            if (bookCreateDTO.AuthorsId is null)
+            {
+                return BadRequest("Can't add a book with no authors");
+            }
 
-            //if (!authorExist)
-            //{
-            //    return BadRequest($"The author with the Id: {book.AuthorId} doesn't exist");
-            //}
+            var authorsIds = await _context.Authors.Where(a => bookCreateDTO.AuthorsId.Contains(a.Id))
+                                                .Select(a => a.Id)
+                                                .ToListAsync();
+
+            if (bookCreateDTO.AuthorsId.Count != authorsIds.Count)
+            {
+                return BadRequest("One or more of the selected authors does not exist in the database");
+            }
 
             var book = _mapper.Map<Book>(bookCreateDTO);
+
+            OrderAuthors(book);
 
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
 
-            return Ok();
-            //return CreatedAtAction("GetBook", new { id = book.Id }, book);
+            var bookDTO = _mapper.Map<BookDTO>(book);
+
+            return CreatedAtAction("GetBook", new { id = book.Id }, book);
         }
 
         // DELETE: api/Books/5
@@ -118,9 +124,15 @@ namespace ASP.NET_API.Controllers
             return NoContent();
         }
 
-        private bool BookExists(int id)
+        private void OrderAuthors(Book book)
         {
-            return _context.Books.Any(e => e.Id == id);
+            if (book.AuthorsBooks is not null)
+            {
+                for (int i = 0; i < book.AuthorsBooks.Count; i++)
+                {
+                    book.AuthorsBooks[i].Order = i;
+                }
+            }
         }
     }
 }

@@ -12,30 +12,32 @@ namespace ASP.NET_API.Controllers
     public class AuthorsControllers : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper mapper;
+        private readonly IMapper _mapper;
 
         public AuthorsControllers(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
-            this.mapper = mapper;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AuthorDTO>>> Get()
+        public async Task<ActionResult<List<AuthorDTOWithBooks>>> Get()
         {
             var authors = await _context.Authors.ToListAsync();
-            return Ok(mapper.Map<List<AuthorDTO>>(authors));
+            return Ok(_mapper.Map<List<AuthorDTO>>(authors));
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "getAuthorById")]
         public async Task<ActionResult<AuthorDTO>> Get(int id)
         {
-            var autor = await _context.Authors.FirstOrDefaultAsync(x => x.Id == id);
+            var autor = await _context.Authors.Include(a => a.AuthorsBooks)
+                                                    .ThenInclude(x => x.Book)        
+                                              .FirstOrDefaultAsync(x => x.Id == id);
 
             if (autor == null)
                 return NotFound();
 
-            return mapper.Map<AuthorDTO>(autor);
+            return _mapper.Map<AuthorDTOWithBooks>(autor);
         }
 
         [HttpGet("{name}")]
@@ -46,28 +48,26 @@ namespace ASP.NET_API.Controllers
             if (authors is null)
                 return NotFound();
 
-            return mapper.Map<AuthorDTO[]>(authors);
+            return _mapper.Map<AuthorDTO[]>(authors);
         }
 
         [HttpPost]
         public async Task<ActionResult> Post(AuthorCreateDTO authorCreateDTO)
         {
-            var author = mapper.Map<Author>(authorCreateDTO);
+            var author = _mapper.Map<Author>(authorCreateDTO);
 
             await _context.Authors.AddAsync(author);   
             await _context.SaveChangesAsync();
-            return Ok();
+
+            var authorDTO = _mapper.Map<AuthorDTO>(author);
+
+            return CreatedAtRoute("getAuthorById", new { id = author.Id }, authorDTO);
         }
 
         // api/authors/3
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, Author author)
+        public async Task<ActionResult> Put(int id, AuthorCreateDTO authorCreateDTO)
         {
-            if (author.Id != id)
-            {
-                return BadRequest("El id del autor no coincide con el id de la URL");
-            }
-
             var exist = await _context.Authors.AnyAsync(a => a.Id == id);
 
             if (!exist)
@@ -75,10 +75,12 @@ namespace ASP.NET_API.Controllers
                 return NotFound();
             }
 
+            var author = _mapper.Map<Author>(authorCreateDTO);
+            author.Id = id;
+
             _context.Update(author);
             await _context.SaveChangesAsync();
-
-            return Ok();
+            return NoContent();
         }
 
         // api/authors/3
