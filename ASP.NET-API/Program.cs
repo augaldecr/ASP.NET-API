@@ -11,7 +11,8 @@ builder.Services.AddControllers( opt =>
 {
     opt.Filters.Add(typeof(ExceptionFilter));
 }).AddJsonOptions(x => 
-    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
+    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles)
+  .AddNewtonsoftJson();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
     opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("defaultConnection")));

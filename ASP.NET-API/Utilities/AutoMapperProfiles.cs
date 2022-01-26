@@ -14,6 +14,7 @@ namespace ASP.NET_API.Utilities
                 .ForMember(authorDTO => authorDTO.Books, opt => opt.MapFrom(MapAuthorDTOBooks));
             CreateMap<BookCreateDTO, Book>()
                 .ForMember(book => book.AuthorsBooks, opt => opt.MapFrom(MapAuthorsBooks));
+            CreateMap<BookPatchDTO, Book>().ReverseMap();
             CreateMap<Book, BookDTO>();
             CreateMap<Book, BookDTOWithAuthors>()
                 .ForMember(b => b.Authors, opt => opt.MapFrom(MapBookDTOAuthors));

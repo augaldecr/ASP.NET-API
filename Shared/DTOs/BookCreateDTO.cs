@@ -9,7 +9,7 @@ namespace Shared.DTOs
         [StringLength(maximumLength: 120, ErrorMessage = "The field {0} must not exceed {1} characters")]
         [CapitalFirstLetterAttribute]
         public string Title { get; set; }
-
+        public DateTime PublicationDate { get; set; }
         public List<int> AuthorsId { get; set; }
     }
 }

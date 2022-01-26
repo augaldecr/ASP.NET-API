@@ -9,6 +9,7 @@ using ASP.NET_API.Data;
 using Shared.Entities;
 using Shared.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ASP.NET_API.Controllers
 {
@@ -105,7 +106,40 @@ namespace ASP.NET_API.Controllers
 
             var bookDTO = _mapper.Map<BookDTO>(book);
 
-            return CreatedAtAction("GetBook", new { id = book.Id }, book);
+            return CreatedAtRoute("GetBook", new { id = book.Id }, book);
+        }
+
+
+        // Must install this nuget to use Patch
+        // Microsoft.AspNetCore.Mvc.NewtonsoftJson
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<BookPatchDTO> patchDocument)
+        {
+            if (patchDocument is null)
+            {
+                return BadRequest();
+            }
+
+            var bookDB = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
+
+            if (bookDB is null)
+            {
+                return NotFound();
+            }
+
+            var bookDTO = _mapper.Map<BookPatchDTO>(bookDB);
+
+            patchDocument.ApplyTo(bookDTO, ModelState);
+
+            var isValid = TryValidateModel(bookDTO);
+
+            if (!isValid)
+                return BadRequest();
+
+            _mapper.Map(bookDTO, bookDB);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         // DELETE: api/Books/5

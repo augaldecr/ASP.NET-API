@@ -8,7 +8,7 @@ using Shared.Entities;
 namespace ASP.NET_API.Controllers
 {
     [ApiController]
-    [Route("api/libros/{libroId:int}/comentarios")]
+    [Route("api/books/{bookId:int}/comments")]
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -33,7 +33,7 @@ namespace ASP.NET_API.Controllers
             return _mapper.Map<List<CommentDTO>>(comments);
         }
 
-        [HttpGet("id:int", Name = "GetComment")]
+        [HttpGet("{id:int}", Name = "GetComment")]
         public async Task<ActionResult<CommentDTO>> GetComment(int id)
         {
             var comment = await _context.Comments.FindAsync(id);
@@ -46,8 +46,8 @@ namespace ASP.NET_API.Controllers
             return _mapper.Map<CommentDTO>(comment);
         }
 
-        [HttpPut("id:int")]
-        public async Task<ActionResult> Put(int bookId, int id, CommentCreateDTO commentCreateDTO)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(int id, int bookId, CommentCreateDTO commentCreateDTO)
         {
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
 
@@ -86,7 +86,7 @@ namespace ASP.NET_API.Controllers
 
             var commentDTO = _mapper.Map<CommentDTO>(comment);
 
-            return CreatedAtAction(nameof(GetComment), new { id = comment.Id, bookId = bookId }, commentDTO);
+            return CreatedAtRoute("GetComment", new { id = comment.Id, bookId = bookId }, commentDTO);
         }
     }
 }
