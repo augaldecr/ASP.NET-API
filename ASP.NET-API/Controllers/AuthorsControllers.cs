@@ -87,23 +87,14 @@ namespace ASP.NET_API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            //var author = await _context.Authors.FindAsync(id);
-
-            //if (author is null)
-            //{
-            //    return NotFound();
-            //}
-
-            var exist = await _context.Authors.AnyAsync(a => a.Id == id);
-
-            if (!exist)
-            {
+            if(await AuthorExist(id))
                 return NotFound();
-            }
 
             _context.Authors.Remove(new Author { Id = id });
             await _context.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
+
+        private async Task<bool> AuthorExist(int id) => await _context.Authors.AnyAsync(b => b.Id == id);
     }
 }

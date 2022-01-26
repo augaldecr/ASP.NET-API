@@ -46,7 +46,7 @@ namespace ASP.NET_API.Controllers
                                                 .ThenInclude(a => a.Author)
                                            .FirstOrDefaultAsync(b => b.Id == id);
 
-            if (book == null)
+            if (book is null)
             {
                 return NotFound();
             }
@@ -143,20 +143,19 @@ namespace ASP.NET_API.Controllers
         }
 
         // DELETE: api/Books/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
-            {
+            if (await BookExist(id))
                 return NotFound();
-            }
 
-            _context.Books.Remove(book);
+            _context.Books.Remove(new Book { Id = id });
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
+        private async Task<bool> BookExist(int id) => await _context.Books.AnyAsync(b => b.Id == id);
 
         private void OrderAuthors(Book book)
         {
