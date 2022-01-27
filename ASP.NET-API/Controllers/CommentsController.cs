@@ -1,26 +1,36 @@
 ﻿using ASP.NET_API.Data;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
 using Shared.Entities;
+using System.Security.Claims;
 
 namespace ASP.NET_API.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/books/{bookId:int}/comments")]
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CommentsController(ApplicationDbContext context, IMapper mapper)
+        public CommentsController(ApplicationDbContext context, 
+                                  IMapper mapper,
+                                  UserManager<IdentityUser> userManager)
         {
             _context = context;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<CommentDTO>>> Get(int bookId)
         {
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
@@ -73,6 +83,10 @@ namespace ASP.NET_API.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(int bookId, CommentCreateDTO commentCreateDTO)
         {
+            var emailClaim = HttpContext.User.Claims.Where(c => c.Type == ClaimTypes.Email).FirstOrDefault();
+            var email = emailClaim?.Value;
+            var user = await _userManager.FindByEmailAsync(email);
+            var userId = user.Id;
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
 
             if (!bookExist)
@@ -80,6 +94,7 @@ namespace ASP.NET_API.Controllers
 
             var comment = _mapper.Map<Comment>(commentCreateDTO);
             comment.BookId = bookId;
+            comment.UserId = userId;    
 
             await _context.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();

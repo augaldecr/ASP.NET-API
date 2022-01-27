@@ -1,5 +1,7 @@
 ﻿using ASP.NET_API.Data;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
@@ -8,24 +10,38 @@ using Shared.Entities;
 namespace ASP.NET_API.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/authors")]
     public class AuthorsControllers : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public AuthorsControllers(ApplicationDbContext context, IMapper mapper)
+        public AuthorsControllers(ApplicationDbContext context, 
+                                  IMapper mapper, 
+                                  Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _context = context;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<AuthorDTOWithBooks>>> Get()
         {
             var authors = await _context.Authors.ToListAsync();
             return Ok(_mapper.Map<List<AuthorDTO>>(authors));
         }
+
+        //[HttpGet("TestConfiguration")]
+        //public async Task<ActionResult<string>> TestConfiguration()
+        //{
+        //    //return _configuration["connectionStrings:defaultConnection"];
+        //    //return _configuration["ASPNETCORE_ENVIRONMENT"];
+        //    return _configuration["Test"];
+        //}
 
         [HttpGet("{id:int}", Name = "getAuthorById")]
         public async Task<ActionResult<AuthorDTO>> Get(int id)
