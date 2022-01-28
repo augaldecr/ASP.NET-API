@@ -11,10 +11,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace ASP.NET_API.Controllers
+namespace ASP.NET_API.Controllers.V1
 {
     [ApiController]
-    [Route("api/accounts")]
+    [Route("api/v1/accounts")]
     public class AccountsController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;

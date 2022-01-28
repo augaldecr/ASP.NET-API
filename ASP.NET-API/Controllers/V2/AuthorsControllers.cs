@@ -9,11 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
 using Shared.Entities;
 
-namespace ASP.NET_API.Controllers
+namespace ASP.NET_API.Controllers.V2
 {
     [ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = PoliciesHelper.IsAnAdmin)]
     [Route("api/authors")]
+    [HeaderAttribute("x-version", "2")]
+    //[Route("api/v2/authors")]
     public class AuthorsControllers : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -32,12 +34,13 @@ namespace ASP.NET_API.Controllers
             _authorizationService = authorizationService;
         }
 
-        [HttpGet(Name = "GetAuthors")]
+        [HttpGet(Name = "GetAuthorsv2")]
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<List<AuthorDTO>> Get()
         {
             var authors = await _context.Authors.ToListAsync();
+            authors.ForEach(author => author.Name = author.Name.ToUpper());
             return _mapper.Map<List<AuthorDTO>>(authors);
         }
 
@@ -49,7 +52,7 @@ namespace ASP.NET_API.Controllers
         //    return _configuration["Test"];
         //}
 
-        [HttpGet("{id:int}", Name = "GetAuthorById")]
+        [HttpGet("{id:int}", Name = "GetAuthorByIdv2")]
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<ActionResult<AuthorDTO>> Get(int id)
@@ -65,7 +68,7 @@ namespace ASP.NET_API.Controllers
             return dto;
         }
 
-        [HttpGet("{name}", Name = "GetAuthorByName")]
+        [HttpGet("{name}", Name = "GetAuthorByNamev2")]
         public async Task<ActionResult<AuthorDTO[]>> GetAuthorByName([FromRoute] string name)
         {
             var authors = await _context.Authors.Where(x => x.Name.Contains(name)).ToArrayAsync();
@@ -76,7 +79,7 @@ namespace ASP.NET_API.Controllers
             return _mapper.Map<AuthorDTO[]>(authors);
         }
 
-        [HttpPost(Name = "CreateAuthor")]
+        [HttpPost(Name = "CreateAuthorv2")]
         public async Task<ActionResult> Post(AuthorCreateDTO authorCreateDTO)
         {
             var author = _mapper.Map<Author>(authorCreateDTO);
@@ -86,11 +89,11 @@ namespace ASP.NET_API.Controllers
 
             var authorDTO = _mapper.Map<AuthorDTO>(author);
 
-            return CreatedAtRoute("GetAuthorById", new { id = author.Id }, authorDTO);
+            return CreatedAtRoute("GetAuthorByIdv2", new { id = author.Id }, authorDTO);
         }
 
         // api/authors/3
-        [HttpPut("{id:int}", Name = "UpdateAuthor")]
+        [HttpPut("{id:int}", Name = "UpdateAuthorv2")]
         public async Task<ActionResult> Put(int id, AuthorCreateDTO authorCreateDTO)
         {
             var exist = await _context.Authors.AnyAsync(a => a.Id == id);
@@ -109,7 +112,7 @@ namespace ASP.NET_API.Controllers
         }
 
         // api/authors/3
-        [HttpDelete("{id}", Name = "DeleteAuthor")]
+        [HttpDelete("{id}", Name = "DeleteAuthorv2")]
         public async Task<ActionResult> Delete(int id)
         {
             if (await AuthorExist(id))

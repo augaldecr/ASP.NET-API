@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
 using Shared.Entities;
 
-namespace ASP.NET_API.Controllers
+namespace ASP.NET_API.Controllers.V1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/books")]
     [ApiController]
     public class BooksController : ControllerBase
     {

@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 
-namespace ASP.NET_API.Controllers
+namespace ASP.NET_API.Controllers.V1
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/v1")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class RootController : ControllerBase
     {

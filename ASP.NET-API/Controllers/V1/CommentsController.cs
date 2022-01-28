@@ -1,4 +1,5 @@
 ﻿using ASP.NET_API.Data;
+using ASP.NET_API.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -9,18 +10,18 @@ using Shared.DTOs;
 using Shared.Entities;
 using System.Security.Claims;
 
-namespace ASP.NET_API.Controllers
+namespace ASP.NET_API.Controllers.V1
 {
     [ApiController]
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [Route("api/books/{bookId:int}/comments")]
+    [Route("api/v1/books/{bookId:int}/comments")]
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public CommentsController(ApplicationDbContext context, 
+        public CommentsController(ApplicationDbContext context,
                                   IMapper mapper,
                                   UserManager<IdentityUser> userManager)
         {
@@ -32,14 +33,18 @@ namespace ASP.NET_API.Controllers
         [HttpGet(Name = "GetCommentsByBookId")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         //[AllowAnonymous]
-        public async Task<ActionResult<List<CommentDTO>>> Get(int bookId)
+        public async Task<ActionResult<List<CommentDTO>>> Get(int bookId, [FromQuery] PaginationDTO paginationDTO)
         {
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
 
             if (!bookExist)
                 return NotFound();
 
-            var comments = await _context.Comments.Where(c => c.BookId == bookId).ToListAsync();
+            var queryable = _context.Comments.Where(c => c.BookId == bookId).AsQueryable();
+
+            await HttpContext.InsertPaginationParametersInHeaders(queryable);
+
+            var comments = await queryable.OrderBy(c => c.Id).Paginate(paginationDTO).ToListAsync();
 
             return _mapper.Map<List<CommentDTO>>(comments);
         }
@@ -95,7 +100,7 @@ namespace ASP.NET_API.Controllers
 
             var comment = _mapper.Map<Comment>(commentCreateDTO);
             comment.BookId = bookId;
-            comment.UserId = userId;    
+            comment.UserId = userId;
 
             await _context.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();
