@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace ASP.NET_API.Controllers
 {
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/books/{bookId:int}/comments")]
     public class CommentsController : ControllerBase
     {
@@ -29,8 +29,9 @@ namespace ASP.NET_API.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
-        [AllowAnonymous]
+        [HttpGet(Name = "GetCommentsByBookId")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //[AllowAnonymous]
         public async Task<ActionResult<List<CommentDTO>>> Get(int bookId)
         {
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
@@ -43,7 +44,7 @@ namespace ASP.NET_API.Controllers
             return _mapper.Map<List<CommentDTO>>(comments);
         }
 
-        [HttpGet("{id:int}", Name = "GetComment")]
+        [HttpGet("{id:int}", Name = "GetCommentById")]
         public async Task<ActionResult<CommentDTO>> GetComment(int id)
         {
             var comment = await _context.Comments.FindAsync(id);
@@ -56,7 +57,7 @@ namespace ASP.NET_API.Controllers
             return _mapper.Map<CommentDTO>(comment);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "UpdateComment")]
         public async Task<ActionResult> Put(int id, int bookId, CommentCreateDTO commentCreateDTO)
         {
             var bookExist = await _context.Books.AnyAsync(b => b.Id == bookId);
@@ -80,7 +81,7 @@ namespace ASP.NET_API.Controllers
             return NoContent();
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateComment")]
         public async Task<ActionResult> Post(int bookId, CommentCreateDTO commentCreateDTO)
         {
             var emailClaim = HttpContext.User.Claims.Where(c => c.Type == ClaimTypes.Email).FirstOrDefault();
@@ -101,7 +102,7 @@ namespace ASP.NET_API.Controllers
 
             var commentDTO = _mapper.Map<CommentDTO>(comment);
 
-            return CreatedAtRoute("GetComment", new { id = comment.Id, bookId = bookId }, commentDTO);
+            return CreatedAtRoute("GetCommentById", new { id = comment.Id, bookId = bookId }, commentDTO);
         }
     }
 }

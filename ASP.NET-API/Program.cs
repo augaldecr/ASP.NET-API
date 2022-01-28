@@ -1,8 +1,12 @@
 using ASP.NET_API.Data;
 using ASP.NET_API.Filters;
+using ASP.NET_API.Helpers;
 using ASP.NET_API.Middlewares;
+using ASP.NET_API.Services;
+using ASP.NET_API.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -38,6 +42,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo {  Title = "AuthorWebAPI", Version = "v1" });
+    c.OperationFilter<AddHATEOASParameter>();
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -70,6 +75,27 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy(PoliciesHelper.IsAnAdmin, pol => pol.RequireClaim(PoliciesHelper.IsAnAdmin));
+    // opt.AddPolicy("IsATeacher", pol => pol.RequireClaim("IsATeacher"));
+});
+
+builder.Services.AddDataProtection();
+builder.Services.AddTransient<HashService>();
+
+builder.Services.AddCors(opt =>
+{
+    opt.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("http://127.0.0.1").AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
+builder.Services.AddTransient<GenerateLinksService>();
+builder.Services.AddTransient<HATEOASAuthorFilterAttribute>();
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -84,6 +110,10 @@ if (app.Environment.IsDevelopment())
 //app.UseLogHttpResponses();
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthorization();
 

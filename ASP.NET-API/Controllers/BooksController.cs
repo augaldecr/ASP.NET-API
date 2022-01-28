@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ASP.NET_API.Data;
-using Shared.Entities;
-using Shared.DTOs;
+﻿using ASP.NET_API.Data;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
+using Shared.Entities;
 
 namespace ASP.NET_API.Controllers
 {
@@ -27,7 +22,7 @@ namespace ASP.NET_API.Controllers
         }
 
         //GET: api/Books
-       [HttpGet]
+        [HttpGet(Name = "GetBooks")]
         public async Task<ActionResult<IEnumerable<BookDTO>>> GetBooks()
         {
             var books = await _context.Books.ToListAsync();
@@ -38,7 +33,7 @@ namespace ASP.NET_API.Controllers
         }
 
         //GET: api/Books/5
-        [HttpGet("{id:int}", Name = "GetBook")]
+        [HttpGet("{id:int}", Name = "GetBookById")]
         public async Task<ActionResult<BookDTOWithAuthors>> GetBook(int id)
         {
             var book = await _context.Books.Include(b => b.Comments)
@@ -60,11 +55,11 @@ namespace ASP.NET_API.Controllers
         }
 
         // PUT: api/Books/5
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateBook")]
         public async Task<IActionResult> PutBook(int id, BookCreateDTO bookCreateDTO)
         {
             var bookDB = await _context.Books.Include(b => b.AuthorsBooks)
-                                             .FirstOrDefaultAsync(b => b.Id==id);
+                                             .FirstOrDefaultAsync(b => b.Id == id);
 
             if (bookDB is null)
             {
@@ -75,12 +70,12 @@ namespace ASP.NET_API.Controllers
 
             OrderAuthors(bookDB);
 
-            await _context.SaveChangesAsync();            
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         // POST: api/Books
-        [HttpPost]
+        [HttpPost(Name = "CreateBook")]
         public async Task<ActionResult<Book>> PostBook(BookCreateDTO bookCreateDTO)
         {
             if (bookCreateDTO.AuthorsId is null)
@@ -106,13 +101,13 @@ namespace ASP.NET_API.Controllers
 
             var bookDTO = _mapper.Map<BookDTO>(book);
 
-            return CreatedAtRoute("GetBook", new { id = book.Id }, book);
+            return CreatedAtRoute("GetBookById", new { id = book.Id }, book);
         }
 
 
         // Must install this nuget to use Patch
         // Microsoft.AspNetCore.Mvc.NewtonsoftJson
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id:int}", Name = "PatchBook")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<BookPatchDTO> patchDocument)
         {
             if (patchDocument is null)
@@ -143,7 +138,7 @@ namespace ASP.NET_API.Controllers
         }
 
         // DELETE: api/Books/5
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name = "DeleteBook")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             if (await BookExist(id))

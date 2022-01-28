@@ -1,6 +1,6 @@
 ﻿namespace Shared.DTOs
 {
-    public class AuthorDTO
+    public class AuthorDTO : ResourceDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
