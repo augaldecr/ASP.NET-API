@@ -13,10 +13,7 @@ namespace ASP.NET_API.Controllers.V1
     {
         private readonly IAuthorizationService _authorizationService;
 
-        public RootController(IAuthorizationService authorizationService)
-        {
-            _authorizationService = authorizationService;
-        }
+        public RootController(IAuthorizationService authorizationService) => _authorizationService = authorizationService;
 
 
         [HttpGet(Name = "GetRoot")]
@@ -29,27 +26,12 @@ namespace ASP.NET_API.Controllers.V1
 
             dataHateoas.Add(new DataHATEOAS(link: Url.Link("GetRoot", new { }), description: "self", method: "GET"));
             dataHateoas.Add(new DataHATEOAS(link: Url.Link("GetAuthors", new { }), description: "authors", method: "GET"));
+            
             if (isAdmin.Succeeded)
             {
                 dataHateoas.Add(new DataHATEOAS(link: Url.Link("CreateAuthor", new { }), description: "create-author", method: "POST"));
                 dataHateoas.Add(new DataHATEOAS(link: Url.Link("CreateBook", new { }), description: "create-book", method: "POST"));
             }
-
-            // Accounts actions
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("Login", new { }), description: "self", method: "POST"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("Register", new { }), description: "self", method: "POST"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("Refresh", new { }), description: "self", method: "GET"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("ConvertToAdmin", new { }), description: "self", method: "POST"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("ConvertToNoAdmin", new { }), description: "self", method: "POST"));
-
-            // Book Actions
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("GetBooks", new { }), description: "self", method: "GET"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("GetBookById", new { }), description: "self", method: "GET"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("UpdateBook", new { }), description: "self", method: "PUT"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("PatchBook", new { }), description: "self", method: "PATCH"));
-            dataHateoas.Add(new DataHATEOAS(link: Url.Link("DeleteBook", new { }), description: "self", method: "DELETE"));
-
-            //Comments Actions
 
             return dataHateoas;
         }

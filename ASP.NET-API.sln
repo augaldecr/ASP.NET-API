@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASP.NET-API", "ASP.NET-API\ASP.NET-API.csproj", "{717E4F99-5219-4ADA-BEE3-FA3CD2CCB9AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{1EDC2D11-DEB0-4337-9EA5-F6C120817363}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{1EDC2D11-DEB0-4337-9EA5-F6C120817363}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASP.NET-API.Test", "ASP.NET-API.Test\ASP.NET-API.Test.csproj", "{96EB780B-6125-418B-90FE-AE9047BEED99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{1EDC2D11-DEB0-4337-9EA5-F6C120817363}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EDC2D11-DEB0-4337-9EA5-F6C120817363}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EDC2D11-DEB0-4337-9EA5-F6C120817363}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96EB780B-6125-418B-90FE-AE9047BEED99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96EB780B-6125-418B-90FE-AE9047BEED99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96EB780B-6125-418B-90FE-AE9047BEED99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96EB780B-6125-418B-90FE-AE9047BEED99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
